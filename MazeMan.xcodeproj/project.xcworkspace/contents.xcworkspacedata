@@ -2,6 +2,9 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:/Users/Quinci 1 2/Desktop/MazeMan/MazeMan/A4-image-resources">
+   </FileRef>
+   <FileRef
       location = "self:MazeMan.xcodeproj">
    </FileRef>
 </Workspace>

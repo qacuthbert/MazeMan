@@ -8,26 +8,42 @@
 
 /* Begin PBXBuildFile section */
 		50A3E9152443A30D00BC8058 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3E9142443A30D00BC8058 /* AppDelegate.swift */; };
-		50A3E9172443A30D00BC8058 /* GameScene.sks in Resources */ = {isa = PBXBuildFile; fileRef = 50A3E9162443A30D00BC8058 /* GameScene.sks */; };
-		50A3E9192443A30D00BC8058 /* Actions.sks in Resources */ = {isa = PBXBuildFile; fileRef = 50A3E9182443A30D00BC8058 /* Actions.sks */; };
 		50A3E91B2443A30D00BC8058 /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3E91A2443A30D00BC8058 /* GameScene.swift */; };
 		50A3E91D2443A30D00BC8058 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3E91C2443A30D00BC8058 /* GameViewController.swift */; };
 		50A3E9202443A30D00BC8058 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 50A3E91E2443A30D00BC8058 /* Main.storyboard */; };
 		50A3E9222443A31200BC8058 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 50A3E9212443A31200BC8058 /* Assets.xcassets */; };
 		50A3E9252443A31200BC8058 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 50A3E9232443A31200BC8058 /* LaunchScreen.storyboard */; };
+		50A3E9362443D3C100BC8058 /* Block.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3E9352443D3C100BC8058 /* Block.swift */; };
+		50A3E9442443E6C200BC8058 /* Water.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3E9432443E6C200BC8058 /* Water.swift */; };
+		50A3E94624450A0500BC8058 /* Grid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3E94524450A0500BC8058 /* Grid.swift */; };
+		50A3E9482445648100BC8058 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3E9472445648000BC8058 /* Message.swift */; };
+		50A3E94A2446372100BC8058 /* Star.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3E9492446372100BC8058 /* Star.swift */; };
+		50A3E94C2446377B00BC8058 /* Food.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3E94B2446377B00BC8058 /* Food.swift */; };
+		50A3E95224465F6600BC8058 /* Dino1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3E95124465F6600BC8058 /* Dino1.swift */; };
+		50A3E95424465F7100BC8058 /* Dino2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3E95324465F7100BC8058 /* Dino2.swift */; };
+		50A3E95624465F7D00BC8058 /* Dino3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3E95524465F7D00BC8058 /* Dino3.swift */; };
+		50A3E95824465F8F00BC8058 /* Dino4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3E95724465F8E00BC8058 /* Dino4.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		50A3E9112443A30D00BC8058 /* MazeMan.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MazeMan.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		50A3E9142443A30D00BC8058 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		50A3E9162443A30D00BC8058 /* GameScene.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = GameScene.sks; sourceTree = "<group>"; };
-		50A3E9182443A30D00BC8058 /* Actions.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = Actions.sks; sourceTree = "<group>"; };
 		50A3E91A2443A30D00BC8058 /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
 		50A3E91C2443A30D00BC8058 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
 		50A3E91F2443A30D00BC8058 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		50A3E9212443A31200BC8058 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		50A3E9242443A31200BC8058 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		50A3E9262443A31200BC8058 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		50A3E9352443D3C100BC8058 /* Block.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Block.swift; sourceTree = "<group>"; };
+		50A3E9432443E6C200BC8058 /* Water.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Water.swift; sourceTree = "<group>"; };
+		50A3E94524450A0500BC8058 /* Grid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Grid.swift; sourceTree = "<group>"; };
+		50A3E9472445648000BC8058 /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
+		50A3E9492446372100BC8058 /* Star.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Star.swift; sourceTree = "<group>"; };
+		50A3E94B2446377B00BC8058 /* Food.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Food.swift; sourceTree = "<group>"; };
+		50A3E95124465F6600BC8058 /* Dino1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dino1.swift; sourceTree = "<group>"; };
+		50A3E95324465F7100BC8058 /* Dino2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dino2.swift; sourceTree = "<group>"; };
+		50A3E95524465F7D00BC8058 /* Dino3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dino3.swift; sourceTree = "<group>"; };
+		50A3E95724465F8E00BC8058 /* Dino4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dino4.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,9 +77,17 @@
 			isa = PBXGroup;
 			children = (
 				50A3E9142443A30D00BC8058 /* AppDelegate.swift */,
-				50A3E9162443A30D00BC8058 /* GameScene.sks */,
-				50A3E9182443A30D00BC8058 /* Actions.sks */,
 				50A3E91A2443A30D00BC8058 /* GameScene.swift */,
+				50A3E9472445648000BC8058 /* Message.swift */,
+				50A3E9492446372100BC8058 /* Star.swift */,
+				50A3E94B2446377B00BC8058 /* Food.swift */,
+				50A3E9432443E6C200BC8058 /* Water.swift */,
+				50A3E94524450A0500BC8058 /* Grid.swift */,
+				50A3E9352443D3C100BC8058 /* Block.swift */,
+				50A3E95124465F6600BC8058 /* Dino1.swift */,
+				50A3E95324465F7100BC8058 /* Dino2.swift */,
+				50A3E95524465F7D00BC8058 /* Dino3.swift */,
+				50A3E95724465F8E00BC8058 /* Dino4.swift */,
 				50A3E91C2443A30D00BC8058 /* GameViewController.swift */,
 				50A3E91E2443A30D00BC8058 /* Main.storyboard */,
 				50A3E9212443A31200BC8058 /* Assets.xcassets */,
@@ -132,10 +156,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				50A3E9202443A30D00BC8058 /* Main.storyboard in Resources */,
-				50A3E9172443A30D00BC8058 /* GameScene.sks in Resources */,
 				50A3E9222443A31200BC8058 /* Assets.xcassets in Resources */,
 				50A3E9252443A31200BC8058 /* LaunchScreen.storyboard in Resources */,
-				50A3E9192443A30D00BC8058 /* Actions.sks in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -147,8 +169,18 @@
 			buildActionMask = 2147483647;
 			files = (
 				50A3E91B2443A30D00BC8058 /* GameScene.swift in Sources */,
+				50A3E95824465F8F00BC8058 /* Dino4.swift in Sources */,
+				50A3E95224465F6600BC8058 /* Dino1.swift in Sources */,
+				50A3E9362443D3C100BC8058 /* Block.swift in Sources */,
 				50A3E91D2443A30D00BC8058 /* GameViewController.swift in Sources */,
+				50A3E95424465F7100BC8058 /* Dino2.swift in Sources */,
+				50A3E9442443E6C200BC8058 /* Water.swift in Sources */,
 				50A3E9152443A30D00BC8058 /* AppDelegate.swift in Sources */,
+				50A3E94C2446377B00BC8058 /* Food.swift in Sources */,
+				50A3E94624450A0500BC8058 /* Grid.swift in Sources */,
+				50A3E9482445648100BC8058 /* Message.swift in Sources */,
+				50A3E94A2446372100BC8058 /* Star.swift in Sources */,
+				50A3E95624465F7D00BC8058 /* Dino3.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -302,7 +334,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = vcu.MazeMan;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 2;
 			};
 			name = Debug;
 		};
@@ -320,7 +352,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = vcu.MazeMan;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 2;
 			};
 			name = Release;
 		};
