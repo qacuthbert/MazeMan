@@ -23,6 +23,11 @@
 		50A3E95424465F7100BC8058 /* Dino2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3E95324465F7100BC8058 /* Dino2.swift */; };
 		50A3E95624465F7D00BC8058 /* Dino3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3E95524465F7D00BC8058 /* Dino3.swift */; };
 		50A3E95824465F8F00BC8058 /* Dino4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3E95724465F8E00BC8058 /* Dino4.swift */; };
+		50A3E95B2446B0E800BC8058 /* Blank.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3E95A2446B0E800BC8058 /* Blank.swift */; };
+		50A3E95D2447BF3700BC8058 /* Rock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3E95C2447BF3700BC8058 /* Rock.swift */; };
+		50A3E95F2447EE6C00BC8058 /* GameOverScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3E95E2447EE6C00BC8058 /* GameOverScene.swift */; };
+		50A3E9632447FDCF00BC8058 /* HighScore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3E9622447FDCF00BC8058 /* HighScore.swift */; };
+		50A3E96A24480A3600BC8058 /* ios in Resources */ = {isa = PBXBuildFile; fileRef = 50A3E96924480A3600BC8058 /* ios */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -44,6 +49,11 @@
 		50A3E95324465F7100BC8058 /* Dino2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dino2.swift; sourceTree = "<group>"; };
 		50A3E95524465F7D00BC8058 /* Dino3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dino3.swift; sourceTree = "<group>"; };
 		50A3E95724465F8E00BC8058 /* Dino4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dino4.swift; sourceTree = "<group>"; };
+		50A3E95A2446B0E800BC8058 /* Blank.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Blank.swift; sourceTree = "<group>"; };
+		50A3E95C2447BF3700BC8058 /* Rock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rock.swift; sourceTree = "<group>"; };
+		50A3E95E2447EE6C00BC8058 /* GameOverScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameOverScene.swift; sourceTree = "<group>"; };
+		50A3E9622447FDCF00BC8058 /* HighScore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighScore.swift; sourceTree = "<group>"; };
+		50A3E96924480A3600BC8058 /* ios */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ios; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,19 +86,24 @@
 		50A3E9132443A30D00BC8058 /* MazeMan */ = {
 			isa = PBXGroup;
 			children = (
+				50A3E96924480A3600BC8058 /* ios */,
+				50A3E9622447FDCF00BC8058 /* HighScore.swift */,
 				50A3E9142443A30D00BC8058 /* AppDelegate.swift */,
+				50A3E91C2443A30D00BC8058 /* GameViewController.swift */,
 				50A3E91A2443A30D00BC8058 /* GameScene.swift */,
+				50A3E95E2447EE6C00BC8058 /* GameOverScene.swift */,
+				50A3E95C2447BF3700BC8058 /* Rock.swift */,
 				50A3E9472445648000BC8058 /* Message.swift */,
 				50A3E9492446372100BC8058 /* Star.swift */,
 				50A3E94B2446377B00BC8058 /* Food.swift */,
 				50A3E9432443E6C200BC8058 /* Water.swift */,
 				50A3E94524450A0500BC8058 /* Grid.swift */,
+				50A3E95A2446B0E800BC8058 /* Blank.swift */,
 				50A3E9352443D3C100BC8058 /* Block.swift */,
 				50A3E95124465F6600BC8058 /* Dino1.swift */,
 				50A3E95324465F7100BC8058 /* Dino2.swift */,
 				50A3E95524465F7D00BC8058 /* Dino3.swift */,
 				50A3E95724465F8E00BC8058 /* Dino4.swift */,
-				50A3E91C2443A30D00BC8058 /* GameViewController.swift */,
 				50A3E91E2443A30D00BC8058 /* Main.storyboard */,
 				50A3E9212443A31200BC8058 /* Assets.xcassets */,
 				50A3E9232443A31200BC8058 /* LaunchScreen.storyboard */,
@@ -157,6 +172,7 @@
 			files = (
 				50A3E9202443A30D00BC8058 /* Main.storyboard in Resources */,
 				50A3E9222443A31200BC8058 /* Assets.xcassets in Resources */,
+				50A3E96A24480A3600BC8058 /* ios in Resources */,
 				50A3E9252443A31200BC8058 /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -168,7 +184,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				50A3E95D2447BF3700BC8058 /* Rock.swift in Sources */,
 				50A3E91B2443A30D00BC8058 /* GameScene.swift in Sources */,
+				50A3E95F2447EE6C00BC8058 /* GameOverScene.swift in Sources */,
 				50A3E95824465F8F00BC8058 /* Dino4.swift in Sources */,
 				50A3E95224465F6600BC8058 /* Dino1.swift in Sources */,
 				50A3E9362443D3C100BC8058 /* Block.swift in Sources */,
@@ -176,7 +194,9 @@
 				50A3E95424465F7100BC8058 /* Dino2.swift in Sources */,
 				50A3E9442443E6C200BC8058 /* Water.swift in Sources */,
 				50A3E9152443A30D00BC8058 /* AppDelegate.swift in Sources */,
+				50A3E95B2446B0E800BC8058 /* Blank.swift in Sources */,
 				50A3E94C2446377B00BC8058 /* Food.swift in Sources */,
+				50A3E9632447FDCF00BC8058 /* HighScore.swift in Sources */,
 				50A3E94624450A0500BC8058 /* Grid.swift in Sources */,
 				50A3E9482445648100BC8058 /* Message.swift in Sources */,
 				50A3E94A2446372100BC8058 /* Star.swift in Sources */,

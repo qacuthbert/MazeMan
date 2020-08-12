@@ -9,31 +9,74 @@
 import SpriteKit
 import GameplayKit
 
+func +(left: CGPoint, right: CGPoint) -> CGPoint {
+    return CGPoint(x: left.x + right.x, y: left.y + right.y)
+}
+
+func -(left: CGPoint, right: CGPoint) -> CGPoint {
+    return CGPoint(x: left.x - right.x, y: left.y - right.y)
+}
+
+func *(point: CGPoint, scalar: CGFloat) -> CGPoint {
+    return CGPoint(x: point.x * scalar, y: point.y * scalar)
+}
+
+func /(point: CGPoint, scalar: CGFloat) -> CGPoint {
+    return CGPoint(x: point.x / scalar, y: point.y / scalar)
+}
+
+#if !(arch(x86_64) || arch(arm64))
+func sqrt(a: CGFloat) -> CGFloat {
+    return CGFloat(sqrtf(Float(a)))
+}
+#endif
+
+extension CGPoint {
+    func length() -> CGFloat {
+        return sqrt(x*x + y*y)
+    }
+    
+    func normalized() -> CGPoint {
+        return self / length()
+    }
+}
+
+struct Score {
+   public static var count = 0
+}
 
 struct PhysicsCategory {
-    static let Water: UInt32 = 0x1 << 0
-    static let Dino: UInt32 = 0x1 << 1
+    static let None: UInt32 = 0x1 << 0
+    static let Dino1: UInt32 = 0x1 << 1
     static let Caveman: UInt32 = 0x1 << 2
     static let Block: UInt32 = 0x1 << 3
     static let Food: UInt32 = 0x1 << 4
     static let Star: UInt32 = 0x1 << 5
     static let Fireball: UInt32 = 0x1 << 6
-    static let FlyingDino: UInt32 = 0x1 << 7
+    static let Dino4: UInt32 = 0x1 << 7
     static let Rock: UInt32 = 0x1 << 8
-    static let SpikesDino: UInt32 = 0x1 << 9
+    static let Dino3: UInt32 = 0x1 << 9
+    static let Wall: UInt32 = 0x1 << 10
+    static let Water: UInt32 = 0x1 << 11
+    static let Dino2: UInt32 = 0x1 << 12
+    
 }
 
-/*
- enum PhysicsCategory: UInt32 {
- case caveman = 1
- case dino = 2
- case water = 4
- case block = 8
- }
- */
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
+    var dino1Hit: Bool = false
+    var dino2Hit: Bool = false
+    var dino3Hit: Bool = false
+    
+    var lastRockTimeInterval: TimeInterval = 0
+    var lastEnergyTimeInterval: TimeInterval = 0
+    var lastBlockTimeInterval: TimeInterval = 0
+    var lastFireTimeInterval: TimeInterval = 0
+    var lastGravityTimeInterval: TimeInterval = 0
+    var lastUpdateTimeInterval: TimeInterval = 0
+    
+    var tapGR: UITapGestureRecognizer!
     var swipeGR: UISwipeGestureRecognizer!
     var swipeUp: UISwipeGestureRecognizer!
     var swipeDown: UISwipeGestureRecognizer!
@@ -41,35 +84,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var swipeRight: UISwipeGestureRecognizer!
     
     var caveman: SKSpriteNode!
-    var block: SKSpriteNode!
-    var water: SKSpriteNode!
-    var food: SKSpriteNode!
-
-    var fire: SKSpriteNode!
-    var dino1: SKSpriteNode!
-    var dino2: SKSpriteNode!
-    var dino3: SKSpriteNode!
-    var dino4: SKSpriteNode!
     
     var star: SKSpriteNode!
     var starLabel: SKLabelNode!
     var starString: String!
-    var starInt: Int!
+    var starInt = 0
     
     var battery: SKSpriteNode!
     var batteryLabel: SKLabelNode!
     var batteryString: String!
-    var batteryInt: Int!
+    var batteryInt = 0
     
     var heart: SKSpriteNode!
     var heartLabel: SKLabelNode!
     var heartString: String!
-    var heartInt: Int!
+    var heartInt = 0
     
     var rock: SKSpriteNode!
     var rockLabel: SKLabelNode!
     var rockString: String!
-    var rockInt: Int!
+    var rockInt = 0
     
     var rockThrow: SKSpriteNode!
     var gamePanel: SKSpriteNode!
@@ -80,87 +114,56 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var messageString: String!
     
     var grid: Grid!
-    // var sprites : [[SKSpriteNode]]!
     
-    
-   // var heartCount = 0
-   // var rockCount = 0
-   // var batteryCount = 0
-   // var starCount = 0
+    var blockCount = 0
     
     var moveUp: SKAction!
     var moveDown: SKAction!
     var moveLeft: SKAction!
     var moveRight: SKAction!
     
-    
-    
-    
-    
-    //  private var label : SKLabelNode?
-    private var spinnyNode : SKShapeNode?
-    
     override func didMove(to view: SKView) {
         
         
         
-        self.physicsWorld.contactDelegate = self
-        
-        
-        
-
-        
         let gameBackground = SKSpriteNode(imageNamed: "bg")
-        
         gameBackground.size = CGSize(width: 1024, height: 768)
         gameBackground.position = CGPoint(x: size.width/2, y: size.height/2)
-        gameBackground.zPosition = -1
-        // self.addChild(gameBackground)
+        gameBackground.zPosition = 0
+        self.addChild(gameBackground)
         
         grid = Grid(blockSize: 64.0, rows:12, cols:16)
-        // sprites = Array(repeating: Array(repeating: 0, count: 5), count: 5)
-        // sprites = Array2D(columns: 16, rows: 12, initialValue: SKSpriteNode())
         
         grid.position = CGPoint (x:frame.midX, y:frame.midY)
         addChild(grid)
         
         
         
+        messageLabel = SKLabelNode(fontNamed: "Courier-Bold")
+        messageLabel.text = " "
+        messageLabel.fontSize = 30
+        messageLabel.fontColor = SKColor.white
+        messageLabel.position = CGPoint(x: size.width/2, y: size.height-74)
+        messageLabel.zPosition = 1
+        
+        self.addChild(messageLabel)
+        
+        star = SKSpriteNode(imageNamed: "star")
+        star.position = CGPoint(x: 32, y: 32)
+        star.size = CGSize(width: 64, height: 64)
+        star.zPosition = 0.75
+        self.addChild(star)
         
         
-        let cavemanTexture = SKTexture(imageNamed: "caveman")
-        caveman = SKSpriteNode(texture: cavemanTexture)
-        caveman.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: caveman.size.width, height: caveman.size.height))
-        caveman.physicsBody?.isDynamic = true
-        caveman.physicsBody?.affectedByGravity = false
-        caveman.physicsBody?.categoryBitMask = PhysicsCategory.Caveman
-        caveman.physicsBody?.collisionBitMask = PhysicsCategory.Block
-        // | PhysicsCategory.Dino | PhysicsCategory.Fireball
-        caveman.physicsBody?.contactTestBitMask = PhysicsCategory.Block |
-            PhysicsCategory.Dino | PhysicsCategory.Fireball | PhysicsCategory.Food | PhysicsCategory.Star | PhysicsCategory.Water
-        caveman.setScale(0.1)
-        caveman.position = grid.gridPosition(row: 10, col: 0)
-        //  caveman.physicsBody = SKPhysicsBody(rectangleOf: caveman.size)
-        // caveman.physicsBody?.categoryBitMask = PhysicsCategory.tutorial
-        // caveman.physicsBody?.isDynamic = true
-        grid.addChild(caveman)
-        // caveman.affectedByGravity = false
-        
-        
-        
-        
-        /*
-         categoryBitMask: the type of the object
-         for collisions
-         • collisionBitMask: what categories of
-         objects this node should collide with
-         • contactTestBitMask which contacts we
-         want to be notified about.
-         */
-        
-        // newProjectile()
-        
-        
+        starString = "\(starInt)"
+        starLabel = SKLabelNode(fontNamed: "Courier-Bold")
+        starLabel.text = starString
+        starLabel.fontSize = 20
+        starLabel.fontColor = SKColor.white
+        // starLabel.fontName = "Courier-Bold"
+        starLabel.position = CGPoint(x: 32, y: 32)
+        starLabel.zPosition = 1
+        self.addChild(starLabel)
         
         setUp()
         grid.setUp()
@@ -174,7 +177,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.addChild(heart)
         
         heartLabel.position = CGPoint(x: 160, y: 32)
-        heartLabel.fontSize = 30
+        heartLabel.fontSize = 20
         heartLabel.fontColor = SKColor.white
         heartLabel.fontName = "Courier-Bold"
         heartLabel.zPosition = 1
@@ -187,7 +190,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.addChild(rock)
         
         rockLabel.position = CGPoint(x: 96, y: 32)
-        rockLabel.fontSize = 30
+        rockLabel.fontSize = 20
         rockLabel.fontColor = SKColor.white
         rockLabel.fontName = "Courier-Bold"
         rockLabel.zPosition = 1
@@ -200,24 +203,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.addChild(battery)
         
         batteryLabel.position = CGPoint(x: 224, y: 32)
-        batteryLabel.fontSize = 30
+        batteryLabel.fontSize = 20
         batteryLabel.fontColor = SKColor.white
         batteryLabel.fontName = "Courier-Bold"
         batteryLabel.zPosition = 1
         self.addChild(batteryLabel)
-        
-        star = SKSpriteNode(imageNamed: "star")
-        star.position = CGPoint(x: 32, y: 32)
-        star.size = CGSize(width: 64, height: 64)
-        star.zPosition = 0.75
-        self.addChild(star)
-        
-        starLabel.position = CGPoint(x: 32, y: 32)
-        starLabel.fontSize = 30
-        starLabel.fontColor = SKColor.white
-        starLabel.fontName = "Courier-Bold"
-        starLabel.zPosition = 1
-        self.addChild(starLabel)
         
         gamePanel = SKSpriteNode(imageNamed: "game-status-panel")
         gamePanel.position = CGPoint(x: size.width/2, y: size.height-64)
@@ -225,56 +215,34 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         gamePanel.zPosition = 0.5
         self.addChild(gamePanel)
         
+    }
+    
+    
+    func addCaveman() -> Void {
         
-        /*
-         // Get label node from scene and store it for use later
-         self.messageLabel = self.childNode(withName: "//helloLabel") as? SKLabelNode
-         if let label = self.messageLabel {
-         label.fontColor = SKColor.white
-         label.alpha = 0.0
-         label.run(SKAction.fadeIn(withDuration: 2.0))
-         }
-         */
-       // messageString = " "
-        messageLabel = SKLabelNode(text: "MazeMan starts NOW! Good Luck!!")
-        messageLabel.position = CGPoint(x: size.width/2, y: size.height-74)
-        messageLabel.fontSize = 30
-        messageLabel.fontColor = SKColor.white
-        messageLabel.fontName = "Courier-Bold"
-        messageLabel.zPosition = 1
-
-        self.addChild(messageLabel)
-        messageLabel.run(SKAction.fadeOut(withDuration: 5.0))
-            /*
-        self.messageLabel = self.childNode(withName: "messageLabel") as? SKLabelNode
-           if let label = self.messageLabel {
-           label.fontColor = SKColor.white
-           label.alpha = 0.0
-           label.run(SKAction.fadeIn(withDuration: 2.0))
-           }
-        */
-
+        let cavemanTexture = SKTexture(imageNamed: "caveman")
+        caveman = SKSpriteNode(texture: cavemanTexture)
+        caveman.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 50, height: 50))
+        caveman.physicsBody?.isDynamic = true
+        caveman.physicsBody?.affectedByGravity = false
+        caveman.physicsBody?.allowsRotation = false
+        caveman.physicsBody?.categoryBitMask = PhysicsCategory.Caveman
+        caveman.physicsBody?.collisionBitMask = PhysicsCategory.Block
+            | PhysicsCategory.Wall | PhysicsCategory.Fireball
+        caveman.physicsBody?.contactTestBitMask = PhysicsCategory.Block | PhysicsCategory.Dino1 | PhysicsCategory.Dino2 | PhysicsCategory.Dino3 | PhysicsCategory.Fireball | PhysicsCategory.Food | PhysicsCategory.Star | PhysicsCategory.Water | PhysicsCategory.Wall
+        caveman.size = CGSize(width: 50, height: 50)
+        caveman.position = grid.gridPosition(row: 10, col: 0)
+        caveman.zPosition = 1
+        grid.addChild(caveman)
         
-        
-        // Create shape node to use during mouse interaction
-        let w = (self.size.width + self.size.height) * 0.05
-        self.spinnyNode = SKShapeNode.init(rectOf: CGSize.init(width: w, height: w), cornerRadius: w * 0.3)
-        
-        if let spinnyNode = self.spinnyNode {
-            spinnyNode.lineWidth = 2.5
-            
-            spinnyNode.run(SKAction.repeatForever(SKAction.rotate(byAngle: CGFloat(Double.pi), duration: 1)))
-            spinnyNode.run(SKAction.sequence([SKAction.wait(forDuration: 0.5),
-                                              SKAction.fadeOut(withDuration: 0.5),
-                                              SKAction.removeFromParent()]))
-        }
-        
-        
-        
+        physicsWorld.contactDelegate = self
     }
     
     
     func addGestures(){
+        
+        tapGR = UITapGestureRecognizer(target: self, action: #selector(tapped))
+        self.view?.addGestureRecognizer(tapGR)
         
         swipeGR = UISwipeGestureRecognizer(target: self, action: #selector(swiped))
         self.view?.addGestureRecognizer(swipeGR)
@@ -282,7 +250,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(swipedRight))
         swipeRight.direction = .right
         self.view?.addGestureRecognizer(swipeRight)
-        
         
         swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(swipedLeft))
         swipeLeft.direction = .left
@@ -299,78 +266,126 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.view?.addGestureRecognizer(swipeDown)
     }
     
+    @objc func tapped() {
+        // 1 - Choose one of the touches to work with
+        // print("tapped!")
+        
+        let touchLocation = touchPosition.point
+        print("touch location is \(touchLocation)")
+        
+        // 2 - Set up initial location of projectile
+        if self.rockReady() {
+            decreaseRock()
+            self.newProjectile()
+          //  rockThrow = self.newProjectile() as? SKSpriteNode
+         //   if let projectile = rockThrow {
+                rockThrow.position = caveman.position
+              //  print("caveman is: \(caveman.position)")
+                // 3 - Determine offset of location to projectile
+                let offset = touchLocation - rockThrow.position
+                
+                // 4 - Bail out if you are shooting down or backwards
+                //if offset.x < 0 { return }
+                
+                // 5 - OK to add now - you've double checked position
+                addChild(rockThrow)
+                
+                // 6 - Get the direction of where to shoot
+                let direction = offset.normalized()
+                
+                // 7 - Make it shoot far enough to be guaranteed off screen
+                let shootAmount = direction * 2000
+                
+                // 8 - Add the shoot amount to the current position
+                let realDest = shootAmount + rockThrow.position
+                
+                // 9 - Create the actions
+                let actionMove = SKAction.move(to: realDest, duration: 4.0)
+  
+            rockThrow.run(actionMove)
+                
+          //  }
+        }
+        
+    }
+    
     @objc func swipedUp(){
+        caveman.removeAllActions()
         moveUp = SKAction.move(by: CGVector(dx: 0, dy: self.frame.height-caveman.frame.height-30), duration: 1.0)
         moveUp.speed = 0.2
-        moveUp.timingMode = .easeInEaseOut
+        moveUp.timingMode = .linear
         caveman.run(moveUp)
         
-        print("swiped up")
+      //  print("swiped up")
     }
     
     @objc func swipedDown(){
+        caveman.removeAllActions()
         moveDown = SKAction.move(by: CGVector(dx: 0, dy: -self.frame.height+caveman.frame.height+30), duration: 1.0)
         moveDown.speed = 0.2
-        moveDown.timingMode = .easeInEaseOut
+        moveDown.timingMode = .linear
         caveman.run(moveDown)
         
-        print("swiped down")
+     //   print("swiped down")
     }
     
     @objc func swipedLeft(){
+        let flipLeft = SKAction.scaleX(to: 1, duration: 0.1)
+        
+        caveman.removeAllActions()
         moveLeft = SKAction.move(by: CGVector(dx: -self.frame.width+caveman.frame.width+30, dy: 0), duration: 1.0)
+        
         moveLeft.speed = 0.2
-        moveLeft.timingMode = .easeInEaseOut
+        moveLeft.timingMode = .linear
+        
+        caveman.run(flipLeft)
         caveman.run(moveLeft)
         
-        print("swiped left")
+      //  print("swiped left")
     }
     
     @objc func swipedRight(){
-    moveRight = SKAction.move(by: CGVector(dx: self.frame.width-caveman.frame.width-30, dy: 0), duration: 1.0)
-    moveRight.speed = 0.2
-    moveRight.timingMode = .easeInEaseOut
-    caveman.run(moveRight)
+        let flipRight = SKAction.scaleX(to: -1, duration: 0.1)
         
-        print("swiped right")
+        caveman.removeAllActions()
+        moveRight = SKAction.move(by: CGVector(dx: self.frame.width-caveman.frame.width-30, dy: 0), duration: 1.0)
+        moveRight.speed = 0.2
+        moveRight.timingMode = .linear
+        
+        caveman.run(flipRight)
+        caveman.run(moveRight)
+        
+      //  print("swiped right")
     }
     
     @objc func swiped(){
         
         print("swiped")
-        //caveman.physicsBody?.affectedByGravity = false
-        
-        /*
-         if ball.physicsBody?.affectedByGravity == true
-         {
-         ball.physicsBody?.affectedByGravity = false
-         ball.physicsBody?.isDynamic = false
-         }
-         else{
-         ball.physicsBody?.affectedByGravity = true
-         ball.physicsBody?.isDynamic = true
-         }
-         */
-        
-        
+    }
+    
+    func gravityOn() -> Void {
+        let delayTime = DispatchTime.now() + 10.0
+        DispatchQueue.main.asyncAfter(deadline: delayTime, execute: {
+            
+            self.caveman.physicsBody?.affectedByGravity = true
+            self.gravityOff()
+            
+        })
         
     }
     
-    func setUp() -> Void {
-        
-        
-      // messageLabel.text = messageString
-        //messageLabel.text = "Test!"
-       
-        
-        if let label = self.messageLabel {
-            label.fontColor = SKColor.white
-            label.alpha = 1.0
-            //  label.run(SKAction.fadeIn(withDuration: 2.0), SKAction.fadeOut(withDuration: 6.0))
-             self.addChild(label)
-            label.run(SKAction.fadeOut(withDuration: 5.0))
+    func gravityOff() -> Void {
+        let delayTime = DispatchTime.now() + 1.0
+        DispatchQueue.main.asyncAfter(deadline: delayTime, execute: {
             
-        }
+            self.caveman.physicsBody?.affectedByGravity = false
+            
+        })
+    }
+    
+    func setUp() -> Void {
+        addCaveman()
+        changeMessageLabel(newText: "MazeMan starts NOW! Good Luck!!")
         
         heartInt = 3
         heartString = "\(String(describing: heartInt))"
@@ -383,280 +398,389 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         batteryLabel = SKLabelNode(text: batteryString)
         starInt = 0
         starString = "\(String(describing: starInt))"
-        starLabel = SKLabelNode(text: starString)
+        starLabel.text = starString
         
     }
     
-    func touchDown(atPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.green
-            self.addChild(n)
+    func takesDamage(damageAmount: Int) -> Void {
+        
+        decreaseEnergy(subtractAmount: damageAmount)
+        
+    }
+    
+    func increaseEnergy(addAmount: Int) -> Void {
+        let addEnergy = addAmount
+        batteryInt = batteryInt + addEnergy
+        
+        if batteryInt >= 100 {
+            if heartInt < 3{
+        increaseHeart()
+            batteryInt = batteryInt-100
+            }
+            else{
+                batteryInt = 100
+            }
+        }
+        
+        batteryString = "\(batteryInt)"
+        batteryLabel.text = batteryString
+        
+    }
+    
+    func decreaseEnergy(subtractAmount: Int) -> Void {
+        let subtractEnergy = subtractAmount
+        batteryInt = batteryInt - subtractEnergy
+        
+        if batteryInt <= 0 {
+        decreaseHeart()
+            batteryInt = batteryInt+100
+        }
+        
+        batteryString = "\(batteryInt)"
+        batteryLabel.text = batteryString
+    }
+    
+    func increaseHeart() -> Void {
+        if heartInt < 3 {
+        heartInt+=1
+        heartString = "\(heartInt)"
+        heartLabel.text = heartString
         }
     }
     
-    func touchMoved(toPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.blue
-            self.addChild(n)
+    func decreaseHeart() -> Void {
+        if heartInt > 0 {
+        heartInt-=1
+        heartString = "\(heartInt)"
+        heartLabel.text = heartString
+        }
+      
+        else {
+            gameOver()
+        }
+
+    }
+    
+    func increaseStar() -> Void {
+        starInt+=1
+        starString = "\(starInt)"
+        starLabel.text = starString
+    }
+    
+    func increaseRock() -> Void {
+        if rockInt < 20 {
+        rockInt+=1
+        rockString = "\(rockInt)"
+        rockLabel.text = rockString
         }
     }
     
-    func touchUp(atPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.red
-            self.addChild(n)
+    func decreaseRock() -> Void {
+        if rockInt > 0 {
+        rockInt-=1
+        rockString = "\(rockInt)"
+        rockLabel.text = rockString
         }
     }
     
     func didBegin(_ contact: SKPhysicsContact) {
         
-         if (contact.bodyA.categoryBitMask == PhysicsCategory.Caveman && contact.bodyB.categoryBitMask == PhysicsCategory.Water) || (contact.bodyB.categoryBitMask == PhysicsCategory.Caveman && contact.bodyA.categoryBitMask == PhysicsCategory.Water){
-         
-         print("Drowned!!!")
+        //If Dino3 runs into blocks
+        if (contact.bodyA.categoryBitMask == PhysicsCategory.Block && contact.bodyB.categoryBitMask == PhysicsCategory.Dino3) || (contact.bodyB.categoryBitMask == PhysicsCategory.Block && contact.bodyA.categoryBitMask == PhysicsCategory.Dino3){
             
-          /*  messageLabel = SKLabelNode(text: "Oh no! MazeMan drowned!!!")
-            
-            if let label = self.messageLabel {
-                label.fontColor = SKColor.white
-                label.alpha = 1.0
-                //  label.run(SKAction.fadeIn(withDuration: 2.0), SKAction.fadeOut(withDuration: 6.0))
-                label.run(SKAction.fadeOut(withDuration: 5.0))
-            }
- */
-            
+            grid.dino3.removeAllActions()
+            grid.whichDirectionDino3()
         }
         
-         if (contact.bodyA.categoryBitMask == PhysicsCategory.Caveman && contact.bodyB.categoryBitMask == PhysicsCategory.Block) || (contact.bodyB.categoryBitMask == PhysicsCategory.Caveman && contact.bodyA.categoryBitMask == PhysicsCategory.Block){
-         
-         print("Ouch!")
+   
+        //If MazeMan runs into Dino1
+        if (contact.bodyA.categoryBitMask == PhysicsCategory.Caveman && contact.bodyB.categoryBitMask == PhysicsCategory.Dino1) || (contact.bodyB.categoryBitMask == PhysicsCategory.Caveman && contact.bodyA.categoryBitMask == PhysicsCategory.Dino1){
             
-            messageLabel.removeFromParent()
-            messageLabel = SKLabelNode(text: "MazeMan needs to watch where he's going!")
-            messageLabel.position = CGPoint(x: size.width/2, y: size.height-74)
-            messageLabel.fontSize = 30
-            messageLabel.fontColor = SKColor.white
-            messageLabel.fontName = "Courier-Bold"
-            messageLabel.zPosition = 1
+            self.takesDamage(damageAmount: 60)
+        }
+        
 
-            self.addChild(messageLabel)
-            messageLabel.run(SKAction.fadeOut(withDuration: 5.0))
+        //If MazeMan runs into Dino2
+        if (contact.bodyA.categoryBitMask == PhysicsCategory.Caveman && contact.bodyB.categoryBitMask == PhysicsCategory.Dino2) || (contact.bodyB.categoryBitMask == PhysicsCategory.Caveman && contact.bodyA.categoryBitMask == PhysicsCategory.Dino2){
             
+            self.takesDamage(damageAmount: 80)
         }
         
-         if (contact.bodyA.categoryBitMask == PhysicsCategory.Caveman && contact.bodyB.categoryBitMask == PhysicsCategory.Star) || (contact.bodyB.categoryBitMask == PhysicsCategory.Caveman && contact.bodyA.categoryBitMask == PhysicsCategory.Star){
-         
-         print("Star!")
-            grid.removeStar()
-            messageLabel.removeFromParent()
-            messageLabel = SKLabelNode(text: "Cool! A star!!")
-            messageLabel.position = CGPoint(x: size.width/2, y: size.height-74)
-            messageLabel.fontSize = 30
-            messageLabel.fontColor = SKColor.white
-            messageLabel.fontName = "Courier-Bold"
-            messageLabel.zPosition = 1
-            self.addChild(messageLabel)
-            messageLabel.run(SKAction.fadeOut(withDuration: 5.0))
-              
-                starInt = starInt+1
-                self.grid.addStar()
+        //If MazeMan runs into Dino3
+        if (contact.bodyA.categoryBitMask == PhysicsCategory.Caveman && contact.bodyB.categoryBitMask == PhysicsCategory.Dino3) || (contact.bodyB.categoryBitMask == PhysicsCategory.Caveman && contact.bodyA.categoryBitMask == PhysicsCategory.Dino3){
             
+            self.takesDamage(damageAmount: 100)
         }
         
-        /*
-         Every time player contacts a food, its energy increases by 50
-         (half heart) and food disappears (removed from parent). The
-         player status panel should be updated accordingly. Food can
-         also be eaten by enemy types dino1, dino2 or dino3, (not by
-         fire coming from dino4). Another food is added to screen
-         immediately after the previous food (if eaten by player). If an
-         enemy has eaten the food, then new one will be added after
-         10 seconds
-         
-         */
-        
-         if (contact.bodyA.categoryBitMask == PhysicsCategory.Caveman && contact.bodyB.categoryBitMask == PhysicsCategory.Food) || (contact.bodyB.categoryBitMask == PhysicsCategory.Caveman && contact.bodyA.categoryBitMask == PhysicsCategory.Food){
-         
-         print("Yum!")
-            grid.removeFood()
-            messageLabel.removeFromParent()
-            messageLabel = SKLabelNode(text: "MazeMan loves to eat!")
-            messageLabel.position = CGPoint(x: size.width/2, y: size.height-74)
-            messageLabel.fontSize = 30
-            messageLabel.fontColor = SKColor.white
-            messageLabel.fontName = "Courier-Bold"
-            messageLabel.zPosition = 1
-            self.addChild(messageLabel)
-            messageLabel.run(SKAction.fadeOut(withDuration: 5.0))
-              
-                self.grid.addFood()
+        //If MazeMan gets hit by Fireball
+        if (contact.bodyA.categoryBitMask == PhysicsCategory.Caveman && contact.bodyB.categoryBitMask == PhysicsCategory.Fireball) || (contact.bodyB.categoryBitMask == PhysicsCategory.Caveman && contact.bodyA.categoryBitMask == PhysicsCategory.Fireball){
             
-        }
-        
-         if (contact.bodyA.categoryBitMask == PhysicsCategory.Caveman && contact.bodyB.categoryBitMask == PhysicsCategory.Dino) || (contact.bodyB.categoryBitMask == PhysicsCategory.Caveman && contact.bodyA.categoryBitMask == PhysicsCategory.Dino){
-         
-         print("Hungry Dino!")
-            grid.removeFood()
-            
-            messageLabel.removeFromParent()
-            messageLabel = SKLabelNode(text: "Dinos love to eat too!")
-            messageLabel.position = CGPoint(x: size.width/2, y: size.height-74)
-            messageLabel.fontSize = 30
-            messageLabel.fontColor = SKColor.white
-            messageLabel.fontName = "Courier-Bold"
-            messageLabel.zPosition = 1
-            self.addChild(messageLabel)
-            messageLabel.run(SKAction.fadeOut(withDuration: 5.0))
-            
-            let delayTime = DispatchTime.now() + 10.0
-            DispatchQueue.main.asyncAfter(deadline: delayTime, execute: {
-                
-                self.grid.addFood()
-                
-            })
-            
-        }
-        
-        
-          //   messageLabel = SKLabelNode(text: "MazeMan needs to watch where he's going!")
-             
-          //  messageLabel.text = messageString
-            
-             /*
-             if let label = self.messageLabel {
-                 label.fontColor = SKColor.white
-                 label.alpha = 1.0
-                 //  label.run(SKAction.fadeIn(withDuration: 2.0), SKAction.fadeOut(withDuration: 6.0))
-                  self.addChild(label)
-                 label.run(SKAction.fadeOut(withDuration: 5.0))
-                 
-             }
- */
-          
-            /*messageLabel = SKLabelNode(text: "MazeMan needs to watch where he's going!")
-    
-            let rockLabel = self.messageLabel
-              //  label.fontColor = SKColor.white
-              //  label.alpha = 1.0
-                //  label.run(SKAction.fadeIn(withDuration: 2.0), SKAction.fadeOut(withDuration: 6.0))
-                 self.addChild(rockLabel!)
-            rockLabel!.run(SKAction.fadeOut(withDuration: 5.0))
-                
-            */
-            
-           // if let label = self.messageLabel {
-               // label.fontColor = SKColor.white
-               // label.alpha = 1.0
-                //  label.run(SKAction.fadeIn(withDuration: 2.0), SKAction.fadeOut(withDuration: 6.0))
-              //  Message().display(message: "MazeMan needs to watch where he's going!")
-                
-              //  sequence(SKAction.fadeIn(withDuration: 2.0), SKAction.fadeOut(withDuration: 6.0))
-         //   }
-            
-        
-         
-            /*
-         //circle.removeFromParent()
-         
-         let rem = SKAction.removeFromParent()
-         
-         //circle.run(rem)
-         
-         circle.removeAction(forKey: "action1")
-         
-         let a2 =  SKAction.scale(by: 1.5, duration: 1.0)
-         
-         circle.run(a2)
-         
-         gameOver()
-         
-         //
-         
-         //circle.physicsBody?.isDynamic = true
-         }
-         
-         if (contact.bodyA.categoryBitMask == PhysicsCategory.Ball && contact.bodyB.categoryBitMask == PhysicsCategory.Ground) || (contact.bodyB.categoryBitMask == PhysicsCategory.Ball && contact.bodyA.categoryBitMask == PhysicsCategory.Ground){
-         
-         print("Ball contacts ground")
-         
-         }
-         
-         
-         
-         if (contact.bodyA.categoryBitMask == PhysicsCategory.Circle && contact.bodyB.categoryBitMask == PhysicsCategory.Ground) || (contact.bodyB.categoryBitMask == PhysicsCategory.Circle && contact.bodyA.categoryBitMask == PhysicsCategory.Ground){
-         
-         print("Circle hits ground")
-         }
-         */
-        
-    }
-    
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        //  if let label = self.label {
-        //      label.run(SKAction.init(named: "Pulse")!, withKey: "fadeInOut")
-        //  }
-        
-        for t in touches { self.touchDown(atPoint: t.location(in: self)) }
-    }
-    
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches { self.touchMoved(toPoint: t.location(in: self)) }
-    }
-    
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches { self.touchUp(atPoint: t.location(in: self)) }
-    }
-    
-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches { self.touchUp(atPoint: t.location(in: self)) }
-    }
-    
-    
-    override func update(_ currentTime: TimeInterval) {
-        // Called before each frame is rendered
-    }
-    
-    
-    func newProjectile () {
-        rockThrow = SKSpriteNode(imageNamed: "rock")
-        rockThrow.name = "beaker"
-        rockThrow.zPosition = 5
-        rockThrow.position = caveman.position
-        let rockBody = SKPhysicsBody(rectangleOf: CGSize(width: 40, height: 40))
-        rockBody.mass = 1.0
-        //  rockBody.categoryBitMask = PhysicsType.rockThrow
-        //  rockBody.collisionBitMask = PhysicsType.wall | PhysicsType.dino
-        rockThrow.physicsBody = rockBody
-        addChild(rockThrow)
-        
-        if let cavemanBody = caveman.physicsBody {
-            let  pinRockToCaveman = SKPhysicsJointFixed.joint(withBodyA: cavemanBody, bodyB: rockBody, anchor: CGPoint.zero)
-            physicsWorld.add(pinRockToCaveman)
-            //  rockReady = true
+            self.takesDamage(damageAmount: 100)
         }
         
         
         
+        //If MazeMan falls into water
+        if (contact.bodyA.categoryBitMask == PhysicsCategory.Caveman && contact.bodyB.categoryBitMask == PhysicsCategory.Water) || (contact.bodyB.categoryBitMask == PhysicsCategory.Caveman && contact.bodyA.categoryBitMask == PhysicsCategory.Water){
+            
+            print("Drowned!!!")
+            gameOver()
+            
+        }
         
+        //If MazeMan runs into blocks
+        if (contact.bodyA.categoryBitMask == PhysicsCategory.Caveman && contact.bodyB.categoryBitMask == PhysicsCategory.Block) || (contact.bodyB.categoryBitMask == PhysicsCategory.Caveman && contact.bodyA.categoryBitMask == PhysicsCategory.Block){
+            
+       //     print("Ouch!")
+            
+        }
+        
+        //If MazeMan collects a star
+        if (contact.bodyA.categoryBitMask == PhysicsCategory.Caveman && contact.bodyB.categoryBitMask == PhysicsCategory.Star) || (contact.bodyB.categoryBitMask == PhysicsCategory.Caveman && contact.bodyA.categoryBitMask == PhysicsCategory.Star){
+            
+            print("Star!")
+            self.increaseStar()
+            self.grid.removeStar()
+            self.changeMessageLabel(newText: "Cool! A star!!")
+            
+        }
+        
+        //If MazeMan eats food
+        if (contact.bodyA.categoryBitMask == PhysicsCategory.Caveman && contact.bodyB.categoryBitMask == PhysicsCategory.Food) || (contact.bodyB.categoryBitMask == PhysicsCategory.Caveman && contact.bodyA.categoryBitMask == PhysicsCategory.Food){
+            
+            
+            self.changeMessageLabel(newText: "MazeMan sure was hungry!!")
+            print("Yum!")
+            increaseEnergy(addAmount: 50)
+            self.grid.removeFoodCaveman()
+            //add to battery and life
+            // self.grid.addFood()
+            
+        }
+            
+            //If a Dino eats food
+        else if ((contact.bodyA.categoryBitMask == PhysicsCategory.Food && contact.bodyB.categoryBitMask == PhysicsCategory.Dino1) || (contact.bodyB.categoryBitMask == PhysicsCategory.Food && contact.bodyA.categoryBitMask == PhysicsCategory.Dino1))
+            || ((contact.bodyA.categoryBitMask == PhysicsCategory.Food && contact.bodyB.categoryBitMask == PhysicsCategory.Dino2) || (contact.bodyB.categoryBitMask == PhysicsCategory.Food && contact.bodyA.categoryBitMask == PhysicsCategory.Dino2))
+            || ((contact.bodyA.categoryBitMask == PhysicsCategory.Food && contact.bodyB.categoryBitMask == PhysicsCategory.Dino3) || (contact.bodyB.categoryBitMask == PhysicsCategory.Food && contact.bodyA.categoryBitMask == PhysicsCategory.Dino3)) {
+            
+         //   print("Hungry Dino!")
+            self.grid.removeFoodDino()
+          //  self.changeMessageLabel(newText: "Dinos love to eat too!")
+        }
+        
+        else {
+        
+        //If MazeMan's rock hits Dino1
+        if (contact.bodyA.categoryBitMask == PhysicsCategory.Rock && contact.bodyB.categoryBitMask == PhysicsCategory.Dino1) || (contact.bodyB.categoryBitMask == PhysicsCategory.Rock && contact.bodyA.categoryBitMask == PhysicsCategory.Dino1) {
+            
+            self.changeMessageLabel(newText: "Nice Shot MazeMan!")
+            self.grid.removeDino1()
+            dino1Hit = true
+
+        
+        }
+        
+    
+        
+    
+   else if (contact.bodyA.categoryBitMask == PhysicsCategory.Rock && contact.bodyB.categoryBitMask == PhysicsCategory.Dino2) || (contact.bodyB.categoryBitMask == PhysicsCategory.Rock && contact.bodyA.categoryBitMask == PhysicsCategory.Dino2) {
+    
+    
+    self.changeMessageLabel(newText: "Nice Shot MazeMan!")
+    
+            self.grid.removeDino2()
+    
     }
+    
+   else if (contact.bodyA.categoryBitMask == PhysicsCategory.Rock && contact.bodyB.categoryBitMask == PhysicsCategory.Dino3) || (contact.bodyB.categoryBitMask == PhysicsCategory.Rock && contact.bodyA.categoryBitMask == PhysicsCategory.Dino3){
+    
+    
+    self.changeMessageLabel(newText: "Nice Shot MazeMan!")
+    
+            self.grid.removeDino3()
+    
+            }
+    }
+}
+
+func changeMessageLabel(newText: String) {
+    
+    self.messageLabel.text = newText
+    self.messageLabel.alpha = 1.0
+    
+    
+    self.messageLabel.run(SKAction.fadeOut(withDuration: 5.0))
+}
+
+
+override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+    //  if let label = self.label {
+    //      label.run(SKAction.init(named: "Pulse")!, withKey: "fadeInOut")
+    //  }
+    
+  //  for t in touches { self.touchDown(atPoint: t.location(in: self)) }
+}
+
+override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+ //   for t in touches { self.touchMoved(toPoint: t.location(in: self)) }
+}
+
+override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+  //  for t in touches { self.touchUp(atPoint: t.location(in: self)) }
+}
+
+override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+  //  for t in touches { self.touchUp(atPoint: t.location(in: self)) }
+}
+
+
+
+//   override func update(_ currentTime: TimeInterval) {
+// Called before each frame is rendered
+//   }
+
+func updateWithTimeSinceLastUpdate(timeSinceLast: CFTimeInterval) {
+    
+    lastEnergyTimeInterval = timeSinceLast + lastEnergyTimeInterval
+    lastRockTimeInterval = timeSinceLast + lastRockTimeInterval
+    lastBlockTimeInterval = timeSinceLast + lastBlockTimeInterval
+    lastFireTimeInterval = timeSinceLast + lastFireTimeInterval
+    lastGravityTimeInterval = timeSinceLast + lastGravityTimeInterval
+    
     /*
-     class GameScene: SKScene {
-     override func didMove(to: SKView) {
-     if let grid = Grid(blockSize: 64.0, rows:10, cols:16) {
-     grid.position = CGPoint (x:frame.midX, y:frame.midY)
-     addChild(grid)
-     print(grid)
-     
-     let gamePiece = SKSpriteNode(imageNamed: "caveman")
-     gamePiece.setScale(0.0625)
-     gamePiece.position = grid.gridPosition(row: 1, col: 0)
-     grid.addChild(gamePiece)
-     }
-     }
-     }
+     a) Life: Initially player will have 3 additional lives (hearts). Every time its energy becomes
+     zero, it loses one heart.
+     b) Energy: 1 Life (heart) is 100 energy. Every second it loses 1 energy. It can gain energy
+     by eating the food (50 energy). It loses energy if contacts to enemies. As the player can
+     have max 3 additional hearts, including its own energy, this will be equa
      */
+    if lastEnergyTimeInterval >= 1.0 {
+        lastEnergyTimeInterval = 0
+        decreaseEnergy(subtractAmount: 1)
+    }
+    
+  //  else {
+    //    lastEnergyTimeInterval = 0
+       // decreaseHeart()
+       // batteryInt = 100
+  //  }
+    
+    if lastRockTimeInterval >= 30.0 && rockInt < 20 {
+        lastRockTimeInterval = 0
+        increaseRock()
+    }
+    
+    
+    if lastBlockTimeInterval > 1.0 && blockCount < 15 {
+        lastBlockTimeInterval = 0
+        grid.addBlock()
+        blockCount+=1
+    }
+    if lastFireTimeInterval >= 5.0 {
+        lastFireTimeInterval = 0
+        grid.fireball.removeFromParent()
+        grid.addFireball()
+    }
+    
+    if lastGravityTimeInterval > 30.0 {
+        lastGravityTimeInterval = 0
+        
+        messageLabel.removeFromParent()
+        messageLabel = SKLabelNode(text: "Watch out for Gravity!!!")
+        messageLabel.position = CGPoint(x: size.width/2, y: size.height-74)
+        messageLabel.fontSize = 30
+        messageLabel.fontColor = SKColor.white
+        messageLabel.fontName = "Courier-Bold"
+        messageLabel.zPosition = 1
+        self.addChild(messageLabel)
+        messageLabel.run(SKAction.fadeOut(withDuration: 5.0))
+        
+        gravityOn()
+    }
+}
+
+override func update(_ currentTime: CFTimeInterval) {
+    var timeSinceLast = currentTime - lastUpdateTimeInterval
+    lastUpdateTimeInterval = currentTime
+    if timeSinceLast > 1.0 {
+        timeSinceLast = 1.0 / 60.0
+        lastUpdateTimeInterval = currentTime
+    }
+    updateWithTimeSinceLastUpdate(timeSinceLast: timeSinceLast)
+}
+
+
+func newProjectile () -> Void {
+    // if rockReady() == true {
+    rockThrow = Rock().newRock
+    let rockTexture = SKTexture(imageNamed: "rock")
+    rockThrow = SKSpriteNode(texture: rockTexture)
+   // rockThrow.name = "rock"
+    rockThrow.zPosition = 5
+    //  rockThrow.position = caveman.position
+    rockThrow.physicsBody?.isDynamic = true
+    rockThrow.physicsBody?.affectedByGravity = false
+   // rockThrow.physicsBody?.allowsRotation = false
+    rockThrow.size = CGSize(width: 40, height: 40)
+    rockThrow.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 40, height: 40))
+    rockThrow.physicsBody?.categoryBitMask = PhysicsCategory.Rock
+    rockThrow.physicsBody?.collisionBitMask = PhysicsCategory.None
+    //PhysicsCategory.Dino1 | PhysicsCategory.Dino2 | PhysicsCategory.Dino3
+    rockThrow.physicsBody?.contactTestBitMask = PhysicsCategory.Dino1 | PhysicsCategory.Dino2 | PhysicsCategory.Dino3 //| //PhysicsCategory.Wall
+    // addChild(rockThrow)
+   
+    // }
+    //  rockReady = true
+}
+
+func rockReady() -> Bool {
+    
+    if self.rockInt > 0 {
+        print("rock ready!")
+        return true
+        
+    }
+    
+    return false
+}
+
+    func gameOver(){
+        // transition to game over scene
+        Score.count = starInt
+        hs.addHighScore()
+        
+        let flipTransition = SKTransition.fade(withDuration: 2.0)
+            
+            //SKTransition.doorsCloseHorizontal(withDuration: 1.0)
+        let gameOverScene = GameOverScene(size: self.size, score: Score.count)
+        gameOverScene.scaleMode = .aspectFill
+        
+        self.view?.presentScene(gameOverScene, transition: flipTransition)
+        
+        
+    }
     
 }
+
+
+//    }
+
+//}
+/*
+ class GameScene: SKScene {
+ override func didMove(to: SKView) {
+ if let grid = Grid(blockSize: 64.0, rows:10, cols:16) {
+ grid.position = CGPoint (x:frame.midX, y:frame.midY)
+ addChild(grid)
+ print(grid)
+ 
+ let gamePiece = SKSpriteNode(imageNamed: "caveman")
+ gamePiece.setScale(0.0625)
+ gamePiece.position = grid.gridPosition(row: 1, col: 0)
+ grid.addChild(gamePiece)
+ }
+ }
+ }
+ */
+
 
